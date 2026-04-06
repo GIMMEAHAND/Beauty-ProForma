@@ -872,3 +872,7 @@ export default function App() {
     ? <Landing onEnter={() => setView("workroom")} />
     : <Workroom onBack={() => setView("landing")} />;
 }
+// This part turns the code on and connects it to your index.html
+import ReactDOM from 'react-dom/client';
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
