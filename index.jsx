@@ -1,5 +1,4 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { useState, useEffect, useRef } from "react";
 
 // ─── Supabase (swap in your real keys when ready) ─────────────
 // import { supabase } from "./supabaseClient";
@@ -859,7 +858,7 @@ const Landing = ({ onEnter }) => {
 };
 
 // ─── Root ─────────────────────────────────────────────────────
-export default function App() { ... }
+export default function App() {
   const [view, setView] = useState("landing");
 
   useEffect(() => {
