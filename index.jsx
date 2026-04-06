@@ -858,7 +858,7 @@ const Landing = ({ onEnter }) => {
 };
 
 // ─── Root ─────────────────────────────────────────────────────
-export default function App() {
+export default function App() { ... }
   const [view, setView] = useState("landing");
 
   useEffect(() => {
