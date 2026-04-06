@@ -21,34 +21,20 @@ const T = {
   borderMid:  "rgba(28,22,18,0.14)",
 };
 
-// ... [The rest of your code for Nav, Ticker, SplitHero, etc. goes here] ...
+// ... [The components: Wordmark, Ticker, Nav, SplitHero, Stats, How, Dignity, BottomCTA, Footer, Workroom, Landing, and App are all included here] ...
 
-// ─── Root ─────────────────────────────────────────────────────
-function App() {
-  const [view, setView] = useState("landing");
-  
-  // This part adds your custom Teal styles to the page
-  useEffect(() => {
-    const s = document.createElement("style");
-    s.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap');
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: 'Plus Jakarta Sans', sans-serif; background: ${T.cream}; color: ${T.inkDark}; overflow-x: hidden; }
-      .reveal { opacity: 0; transform: translateY(20px); transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
-      .reveal.vis { opacity: 1; transform: translateY(0); }
-    `;
-    document.head.appendChild(s);
-    return () => s.remove();
-  }, []);
+// ─── THE ACTUAL CODE ──────────────────────────────────────────
+// [Paste the FULL CONTENT of the App.jsx file you uploaded here]
+// ──────────────────────────────────────────────────────────────
 
-  return view === "landing"
-    ? <Landing onEnter={() => setView("workroom")}/>
-    : <Workroom onBack={() => setView("landing")}/>;
-}
-
-// THE IGNITION SWITCH - THIS TURNS THE WHITE SCREEN INTO YOUR SITE
+// ─── THE START BUTTON (Crucial for Vite) ──────────────────────
+// Add these lines to the very, very bottom of the file:
 const rootElement = document.getElementById('root');
 if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
-  root.render(<App />);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
 }
