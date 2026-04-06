@@ -1,78 +1,60 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
-// Import your Supabase client that we saw in your file list
-import { supabase } from './supabaseClient'; 
 
-// ─── THE REAL CLAUDE DESIGN TOKENS ───────────────────────────
+// --- CLAUDE'S PREMIUM DESIGN SYSTEM ---
 const T = {
   cream: "#FAF7F2",
-  teal: "#59c5c5",
   inkDark: "#1C1612",
-  inkMid: "#4A3F35",
-  borderSoft: "rgba(28,22,18,0.07)",
-  tealGlow: "rgba(89,197,197,0.12)",
+  teal: "#59c5c5",
+  border: "rgba(28,22,18,0.1)",
 };
 
-// ─── THE FULL LANDING PAGE (With Ticker & Hero) ──────────────
-const Landing = ({ onEnter }) => (
-  <div style={{ backgroundColor: T.cream, minHeight: "100vh" }}>
-    <nav style={{ height: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px', borderBottom: `1px solid ${T.borderSoft}` }}>
-      <div style={{ fontWeight: 'bold', fontSize: '20px' }}>BEAUTY <span style={{ color: T.teal }}>PROFORMA</span></div>
-      <button onClick={onEnter} style={{ background: T.inkDark, color: 'white', padding: '10px 20px', borderRadius: '50px', border: 'none', cursor: 'pointer' }}>Login</button>
-    </nav>
-    <main style={{ padding: '100px 40px', textAlign: 'center' }}>
-      <h1 style={{ fontSize: '64px', fontFamily: 'serif', marginBottom: '24px' }}>The Sovereign Foundation</h1>
-      <p style={{ fontSize: '20px', color: T.inkMid, marginBottom: '40px' }}>Your empire, managed in high-definition.</p>
-      <button onClick={onEnter} style={{ backgroundColor: T.teal, color: 'white', padding: '20px 50px', borderRadius: '50px', fontSize: '18px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
-        Start Your Empire
-      </button>
+// --- CLAUDE'S WORKROOM COMPONENT ---
+const Workroom = ({ onBack }) => (
+  <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a0a', color: 'white', fontFamily: 'sans-serif' }}>
+    <aside style={{ width: '280px', borderRight: '1px solid #222', padding: '40px', display: 'flex', flexDirection: 'column' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: T.teal, cursor: 'pointer', marginBottom: '60px', textAlign: 'left', fontSize: '16px' }}>← Exit to Landing</button>
+      <div style={{ fontSize: '12px', color: '#666', letterSpacing: '0.1em', marginBottom: '24px' }}>MANAGEMENT</div>
+      <div style={{ padding: '12px 0', color: T.teal, fontWeight: '600', cursor: 'pointer' }}>Empire Overview</div>
+      <div style={{ padding: '12px 0', color: '#888', cursor: 'pointer' }}>Client Registry</div>
+      <div style={{ padding: '12px 0', color: '#888', cursor: 'pointer' }}>Revenue Stream</div>
+    </aside>
+    <main style={{ flex: 1, padding: '80px', background: 'radial-gradient(circle at top right, #111, #0a0a0a)' }}>
+      <h2 style={{ fontSize: '42px', marginBottom: '12px', fontWeight: 'normal' }}>Welcome, Professional.</h2>
+      <p style={{ color: '#666', fontSize: '18px', marginBottom: '60px' }}>Your sovereign foundation is active.</p>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+        <div style={{ background: '#161616', padding: '40px', borderRadius: '24px', border: '1px solid #222' }}>
+          <div style={{ color: T.teal, marginBottom: '16px', fontSize: '14px', letterSpacing: '0.05em' }}>TOTAL REVENUE</div>
+          <div style={{ fontSize: '36px' }}>$0.00</div>
+        </div>
+        <div style={{ background: '#161616', padding: '40px', borderRadius: '24px', border: '1px solid #222' }}>
+          <div style={{ color: T.teal, marginBottom: '16px', fontSize: '14px', letterSpacing: '0.05em' }}>ACTIVE CLIENTS</div>
+          <div style={{ fontSize: '36px' }}>0</div>
+        </div>
+      </div>
     </main>
   </div>
 );
 
-// ─── THE REAL WORKROOM (With Live Data Logic) ────────────────
-const Workroom = ({ onBack }) => {
-  const [data, setData] = useState({ revenue: 0, appointments: 0 });
+// --- CLAUDE'S LANDING COMPONENT ---
+const Landing = ({ onEnter }) => (
+  <div style={{ background: T.cream, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+    <h1 style={{ fontSize: '72px', color: T.inkDark, marginBottom: '32px', fontWeight: 'normal' }}>Sovereign <span style={{ fontStyle: 'italic' }}>Foundation</span></h1>
+    <button 
+      onClick={onEnter}
+      style={{ padding: '24px 60px', background: T.teal, color: 'white', border: 'none', borderRadius: '100px', fontSize: '18px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 20px 40px rgba(89,197,197,0.2)' }}
+    >
+      Start Your Empire
+    </button>
+  </div>
+);
 
-  // This is where we replace "Dummy Numbers" with your REAL data
-  useEffect(() => {
-    const fetchData = async () => {
-      // We will add your specific Supabase queries here once the layout is right
-      console.log("Fetching from Supabase...");
-    };
-    fetchData();
-  }, []);
-
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a0a', color: 'white' }}>
-      <aside style={{ width: '260px', borderRight: '1px solid #222', padding: '40px' }}>
-        <button onClick={onBack} style={{ color: T.teal, background: 'none', border: 'none', cursor: 'pointer', marginBottom: '40px' }}>← Exit</button>
-        <div style={{ color: '#666', fontSize: '12px', marginBottom: '20px' }}>WORKROOM</div>
-        <div style={{ padding: '10px 0', color: T.teal }}>Dashboard</div>
-        <div style={{ padding: '10px 0', opacity: 0.5 }}>Clients</div>
-      </aside>
-      <main style={{ flex: 1, padding: '60px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '30px' }}>
-          <div style={{ background: '#111', padding: '40px', borderRadius: '20px', border: '1px solid #222' }}>
-            <div style={{ color: T.teal, marginBottom: '10px' }}>Current Revenue</div>
-            <div style={{ fontSize: '32px' }}>${data.revenue.toLocaleString()}</div>
-          </div>
-          <div style={{ background: '#111', padding: '40px', borderRadius: '20px', border: '1px solid #222' }}>
-            <div style={{ color: T.teal, marginBottom: '10px' }}>Total Appointments</div>
-            <div style={{ fontSize: '32px' }}>{data.appointments}</div>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-};
-
-// ─── THE APP SHELL ────────────────────────────────────────────
+// --- THE ENGINE ---
 function App() {
   const [view, setView] = useState("landing");
   return view === "landing" ? <Landing onEnter={() => setView("workroom")} /> : <Workroom onBack={() => setView("landing")} />;
 }
 
-// ─── THE VITE IGNITION (The fix that keeps it from being white) ──
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
