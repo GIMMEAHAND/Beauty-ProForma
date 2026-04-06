@@ -67,16 +67,41 @@ const Workroom = ({ onBack }) => (
 );
 
 // --- MAIN APP ---
+// --- THE FULL SCROLLING APP ---
 function App() {
   const [view, setView] = useState("landing");
-  return view === "landing" ? (
-    <>
+
+  // This ensures the page can actually scroll
+  useEffect(() => {
+    document.body.style.overflow = "auto";
+    document.body.style.margin = "0";
+    document.body.style.backgroundColor = T.cream;
+  }, []);
+
+  if (view === "workroom") {
+    return <Workroom onBack={() => setView("landing")} />;
+  }
+
+  return (
+    <div style={{ width: '100%', overflowX: 'hidden' }}>
       <Hero onEnter={() => setView("workroom")} />
       <Stats />
       <Steps />
-    </>
-  ) : (
-    <Workroom onBack={() => setView("landing")} />
+      
+      {/* The Footer - The very bottom of your image */}
+      <footer style={{ background: T.inkDark, color: 'white', padding: '80px 40px', textAlign: 'center' }}>
+        <h2 style={{ fontFamily: 'serif', fontSize: '32px', marginBottom: '20px' }}>Ready to scale?</h2>
+        <button 
+          onClick={() => setView("workroom")}
+          style={{ background: 'white', color: T.inkDark, padding: '15px 40px', borderRadius: '100px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+        >
+          Get Started
+        </button>
+        <div style={{ marginTop: '40px', opacity: 0.5, fontSize: '12px' }}>
+          © 2026 BEAUTY PROFORMA. ALL RIGHTS RESERVED.
+        </div>
+      </footer>
+    </div>
   );
 }
 
