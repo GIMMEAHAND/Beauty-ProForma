@@ -1,574 +1,302 @@
 import { useState, useEffect, useRef } from "react";
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const MOCK_PARTNERSHIP = {
-  id: "p_001",
-  pro: { name: "Dominique Ellis", specialty: "Color Specialist & Lash Artist", avatar: "DE" },
-  manager: { name: "Camille Voss", skills: ["Pinterest Management", "SEO", "Affiliate Strategy"], avatar: "CV" },
-  status: "Active",
-  dignity_clause_version: "v1.0",
+// ─── Supabase (swap in your real keys when ready) ─────────────
+// import { supabase } from "./supabaseClient";
+
+// ─── Design tokens ────────────────────────────────────────────
+const T = {
+  cream:      "#FAF7F2",
+  parchment:  "#F3EDE3",
+  warmWhite:  "#FDFBF8",
+  deepWarm:   "#1C1612",
+  surface:    "#F0E9DF",
+  teal:       "#59c5c5",
+  tealLight:  "#7DD4D4",
+  tealDark:   "#3DA8A8",
+  tealGlow:   "rgba(89,197,197,0.12)",
+  tealBorder: "rgba(89,197,197,0.28)",
+  inkDark:    "#1C1612",
+  inkMid:     "#4A3F35",
+  inkLight:   "#8A7A6A",
+  inkFaint:   "#B8ADA0",
+  borderSoft: "rgba(28,22,18,0.07)",
+  borderMid:  "rgba(28,22,18,0.14)",
 };
 
-const MOCK_ASSETS = [
-  { id: "a1", tier: "raw", type: "video", title: "Balayage Full Tutorial — 90 min", uploader: "DE", size: "2.4 GB", date: "Jun 12", thumbnail: "🎬", metrixs_id: "mx_001" },
-  { id: "a2", tier: "raw", type: "image", title: "Before & After — Rose Gold Retouch", uploader: "DE", size: "18 MB", date: "Jun 10", thumbnail: "📸", metrixs_id: "mx_002" },
-  { id: "a3", tier: "raw", type: "video", title: "Lash Set ASMR — Natural Hybrid", uploader: "DE", size: "1.1 GB", date: "Jun 8", thumbnail: "🎬", metrixs_id: null },
-  { id: "a4", tier: "processed", type: "pinterest_pin", title: "5-Pin Carousel — Balayage Steps", uploader: "CV", size: "4.2 MB", date: "Jun 13", thumbnail: "📌", source: "a1", metrixs_id: "mx_003" },
-  { id: "a5", tier: "processed", type: "etsy_product", title: "Digital Guide: Rose Gold Formula", uploader: "CV", size: "890 KB", date: "Jun 11", thumbnail: "🛍️", source: "a2", metrixs_id: "mx_004" },
-  { id: "a6", tier: "processed", type: "video", title: "TikTok Cut — 60s Balayage Reveal", uploader: "CV", size: "78 MB", date: "Jun 14", thumbnail: "📱", source: "a1", metrixs_id: "mx_005" },
-];
+const STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:#FAF7F2;color:#1C1612;font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  ::selection{background:#59c5c5;color:white}
+  ::-webkit-scrollbar{width:3px}
+  ::-webkit-scrollbar-track{background:#F3EDE3}
+  ::-webkit-scrollbar-thumb{background:#59c5c5;border-radius:2px}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes slideL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+  @keyframes slideR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+  @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  @keyframes pdot{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+  @keyframes wIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .65s ease,transform .65s ease}
+  .reveal.vis{opacity:1;transform:none}
+  .btn-t{display:inline-flex;align-items:center;gap:8px;background:#59c5c5;color:white;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:13px;padding:13px 28px;border:none;border-radius:6px;cursor:pointer;transition:background .2s,transform .15s,box-shadow .2s;box-shadow:0 2px 12px rgba(89,197,197,.26)}
+  .btn-t:hover{background:#7DD4D4;transform:translateY(-1px);box-shadow:0 4px 20px rgba(89,197,197,.34)}
+  .btn-t:active{transform:scale(.99)}
+  .btn-o{display:inline-flex;align-items:center;gap:8px;background:transparent;color:#1C1612;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;font-size:13px;padding:12px 28px;border:1.5px solid rgba(28,22,18,.14);border-radius:6px;cursor:pointer;transition:all .2s}
+  .btn-o:hover{border-color:#59c5c5;color:#3DA8A8;transform:translateY(-1px)}
+  .btn-ow{display:inline-flex;align-items:center;gap:8px;background:transparent;color:white;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;font-size:13px;padding:12px 28px;border:1.5px solid rgba(255,255,255,.3);border-radius:6px;cursor:pointer;transition:all .2s}
+  .btn-ow:hover{border-color:rgba(255,255,255,.65);background:rgba(255,255,255,.07);transform:translateY(-1px)}
+  .nav-a{font-size:13px;font-weight:500;color:#4A3F35;cursor:pointer;padding-bottom:2px;border-bottom:1.5px solid transparent;transition:color .18s,border-color .18s}
+  .nav-a:hover{color:#1C1612;border-color:#59c5c5}
+  .clift{transition:transform .25s ease,box-shadow .25s ease}
+  .clift:hover{transform:translateY(-4px);box-shadow:0 10px 36px rgba(28,22,18,.1)}
+  .si{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:#8A7A6A;transition:background .18s,color .18s;border:1px solid transparent}
+  .si:hover{background:#F0E9DF;color:#1C1612}
+  .si.on{background:rgba(89,197,197,.1);color:#3DA8A8;border-color:rgba(89,197,197,.26)}
+  .tanim{animation:fadeIn .3s ease}
+  input[type=email]{background:white;border:1.5px solid rgba(28,22,18,.14);color:#1C1612;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;padding:13px 16px;border-radius:6px;outline:none;transition:border-color .2s,box-shadow .2s;width:100%}
+  input[type=email]::placeholder{color:#B8ADA0}
+  input[type=email]:focus{border-color:#59c5c5;box-shadow:0 0 0 3px rgba(89,197,197,.12)}
+`;
 
-const MOCK_TASKS = [
-  { id: "t1", title: "Scheduled 5 pins in SalonFlow", category: "Pinterest Scheduling", status: "Verified", created: "Jun 13", proof: "https://proof.link", proNote: "Confirmed — pins went live at 9AM ✓", manager_note: "Scheduled for optimal Tue/Thu windows" },
-  { id: "t2", title: "Optimized 3 Etsy listings with SEO tags", category: "SEO Optimization", status: "Submitted", created: "Jun 14", proof: "https://etsy-report.link", manager_note: "Updated titles, tags, and alt text" },
-  { id: "t3", title: "Set up Amazon affiliate links in bio", category: "Affiliate Setup", status: "Pending", created: "Jun 15", proof: null, manager_note: "Awaiting brand approval from 2 partners" },
-  { id: "t4", title: "Published TikTok cut with trending audio", category: "Social Post", status: "Disputed", created: "Jun 12", proof: null, proNote: "Audio not pre-approved — needs review", manager_note: "Selected audio from approved list" },
-  { id: "t5", title: "Monthly analytics report — May", category: "Analytics Report", status: "Verified", created: "Jun 3", proof: "https://report.pdf", proNote: "Great work on the Etsy numbers 🙌", manager_note: "Includes MetriXs + Etsy dashboard" },
-];
-
-const MOCK_METRICS = {
-  mx_001: { platform: "TikTok", views: 84200, likes: 6100, shares: 920, watchAvg: "0:42", trend: "+18%" },
-  mx_002: { platform: "Instagram", reach: 12400, saves: 1840, impressions: 31000, profileVisits: 870, trend: "+6%" },
-  mx_003: { platform: "Pinterest", impressions: 58000, saves: 3200, clicks: 1450, ctr: "2.5%", trend: "+31%" },
-  mx_004: { platform: "Etsy", views: 4400, favorites: 280, sales: 34, revenue: "$748", trend: "+12%" },
-  mx_005: { platform: "TikTok", views: 220000, likes: 19800, shares: 4300, watchAvg: "0:55", trend: "+89%" },
-};
-
-const MOCK_ACTIVITY = [
-  { id: "ac1", type: "task_verified", actor: "DE", msg: "Dominique verified Pinterest scheduling task", time: "2m ago" },
-  { id: "ac2", type: "asset_processed", actor: "CV", msg: "Camille uploaded TikTok cut from Balayage Tutorial", time: "1h ago" },
-  { id: "ac3", type: "metrics_refreshed", actor: "system", msg: "MetriXs synced — TikTok cut hit 220K views", time: "3h ago" },
-  { id: "ac4", type: "task_submitted", actor: "CV", msg: "Camille submitted SEO optimization task", time: "5h ago" },
-  { id: "ac5", type: "asset_uploaded", actor: "DE", msg: "Dominique uploaded Balayage Full Tutorial", time: "Jun 12" },
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const statusColors = {
-  Pending:   { bg: "#2a2018", text: "#f5a623", border: "#f5a62340" },
-  Submitted: { bg: "#0f1e2e", text: "#4a9eff", border: "#4a9eff40" },
-  Verified:  { bg: "#0a1f14", text: "#3dd68c", border: "#3dd68c40" },
-  Disputed:  { bg: "#2a0f0f", text: "#ff6b6b", border: "#ff6b6b40" },
-};
-
-const activityIcons = {
-  asset_uploaded: "↑", asset_processed: "✦", task_created: "+",
-  task_submitted: "→", task_verified: "✓", task_disputed: "!",
-  metrics_refreshed: "◎", partner_joined: "◈",
-};
-
-const platformColors = {
-  TikTok: "#ff2d55", Pinterest: "#e60023", Instagram: "#c13584", Etsy: "#f1641e",
-};
-
-// ─── Components ───────────────────────────────────────────────────────────────
-
-function Avatar({ initials, size = 36, color = "#c9a96e" }) {
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: "50%",
-      background: `${color}22`, border: `1px solid ${color}55`,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.33, fontFamily: "'DM Serif Display', serif",
-      color, flexShrink: 0,
-    }}>{initials}</div>
-  );
-}
-
-function StatusPill({ status }) {
-  const c = statusColors[status] || statusColors.Pending;
-  return (
+// ─── Small components ─────────────────────────────────────────
+const Wordmark = ({ size = 18, dark = false }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+    <svg width={size + 6} height={size + 6} viewBox="0 0 30 30" fill="none">
+      <circle cx="11" cy="15" r="8.5" stroke={T.teal} strokeWidth="2" />
+      <circle cx="19" cy="15" r="8.5" stroke={dark ? "white" : T.inkDark} strokeWidth="2" opacity=".45" />
+      <circle cx="15" cy="15" r="3.5" fill={T.teal} />
+    </svg>
     <span style={{
-      fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase",
-      padding: "3px 8px", borderRadius: 20,
-      background: c.bg, color: c.text, border: `1px solid ${c.border}`,
-      fontFamily: "'DM Mono', monospace", fontWeight: 500,
-    }}>{status}</span>
-  );
-}
-
-function MetricCard({ label, value, sub }) {
-  return (
-    <div style={{ padding: "14px 16px", borderRadius: 10, background: "#0d0d0f", border: "1px solid #1e1e22" }}>
-      <div style={{ fontSize: 11, color: "#666", fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 22, color: "#f0e8d8", fontFamily: "'DM Serif Display', serif", lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: "#3dd68c", marginTop: 4, fontFamily: "'DM Mono', monospace" }}>{sub}</div>}
-    </div>
-  );
-}
-
-function MetriXsPanel({ asset }) {
-  const m = MOCK_METRICS[asset.metrixs_id];
-  const [loading, setLoading] = useState(true);
-  useEffect(() => { const t = setTimeout(() => setLoading(false), 800); return () => clearTimeout(t); }, [asset.id]);
-
-  if (!asset.metrixs_id) return (
-    <div style={{ padding: 20, textAlign: "center", color: "#444", fontSize: 12, fontFamily: "'DM Mono', monospace" }}>
-      No MetriXs ID linked to this asset
-    </div>
-  );
-
-  if (loading) return (
-    <div style={{ padding: 24, textAlign: "center" }}>
-      <div style={{ display: "inline-block", width: 20, height: 20, border: "2px solid #c9a96e44", borderTopColor: "#c9a96e", borderRadius: "50%", animation: "spin 0.8s linear infinite" }}/>
-      <div style={{ marginTop: 10, fontSize: 11, color: "#555", fontFamily: "'DM Mono', monospace" }}>Pulling from MetriXs API…</div>
-    </div>
-  );
-
-  const pc = platformColors[m.platform] || "#c9a96e";
-
-  return (
-    <div style={{ padding: "16px 0 0" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, paddingBottom: 12, borderBottom: "1px solid #1a1a1e" }}>
-        <div style={{ width: 8, height: 8, borderRadius: "50%", background: pc }}/>
-        <span style={{ fontSize: 11, color: pc, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em" }}>{m.platform.toUpperCase()}</span>
-        <span style={{ marginLeft: "auto", fontSize: 11, color: "#3dd68c", fontFamily: "'DM Mono', monospace" }}>{m.trend} this week</span>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        {m.platform === "TikTok" && <>
-          <MetricCard label="Views" value={m.views.toLocaleString()} />
-          <MetricCard label="Likes" value={m.likes.toLocaleString()} />
-          <MetricCard label="Shares" value={m.shares.toLocaleString()} />
-          <MetricCard label="Avg Watch" value={m.watchAvg} />
-        </>}
-        {m.platform === "Pinterest" && <>
-          <MetricCard label="Impressions" value={m.impressions.toLocaleString()} />
-          <MetricCard label="Saves" value={m.saves.toLocaleString()} />
-          <MetricCard label="Clicks" value={m.clicks.toLocaleString()} />
-          <MetricCard label="CTR" value={m.ctr} />
-        </>}
-        {m.platform === "Instagram" && <>
-          <MetricCard label="Reach" value={m.reach.toLocaleString()} />
-          <MetricCard label="Saves" value={m.saves.toLocaleString()} />
-          <MetricCard label="Impressions" value={m.impressions.toLocaleString()} />
-          <MetricCard label="Profile Visits" value={m.profileVisits.toLocaleString()} />
-        </>}
-        {m.platform === "Etsy" && <>
-          <MetricCard label="Views" value={m.views.toLocaleString()} />
-          <MetricCard label="Favorites" value={m.favorites.toLocaleString()} />
-          <MetricCard label="Sales" value={m.sales} />
-          <MetricCard label="Revenue" value={m.revenue} sub="this period" />
-        </>}
-      </div>
-    </div>
-  );
-}
-
-// ─── Asset Vault ──────────────────────────────────────────────────────────────
-function AssetVault({ role }) {
-  const [filter, setFilter] = useState("all");
-  const [selected, setSelected] = useState(null);
-  const [showMetriXs, setShowMetriXs] = useState(false);
-
-  const filtered = MOCK_ASSETS.filter(a =>
-    filter === "all" ? true : a.tier === filter
-  );
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: selected ? "1fr 340px" : "1fr", gap: 16, transition: "all 0.3s" }}>
-      <div>
-        {/* Filters + Upload */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
-          {["all", "raw", "processed"].map(f => (
-            <button key={f} onClick={() => setFilter(f)} style={{
-              padding: "6px 14px", borderRadius: 20, fontSize: 11, cursor: "pointer",
-              fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", textTransform: "uppercase",
-              background: filter === f ? "#c9a96e" : "transparent",
-              color: filter === f ? "#0a0a0c" : "#666",
-              border: `1px solid ${filter === f ? "#c9a96e" : "#252528"}`,
-              transition: "all 0.2s",
-            }}>{f}</button>
-          ))}
-          <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-            {role === "pro" && (
-              <button style={{
-                padding: "7px 16px", borderRadius: 8, fontSize: 12, cursor: "pointer",
-                background: "#1a1a1e", color: "#c9a96e", border: "1px solid #c9a96e44",
-                fontFamily: "'DM Mono', monospace",
-              }}>↑ Upload Raw</button>
-            )}
-            {role === "manager" && (
-              <button style={{
-                padding: "7px 16px", borderRadius: 8, fontSize: 12, cursor: "pointer",
-                background: "#1a1a1e", color: "#4a9eff", border: "1px solid #4a9eff44",
-                fontFamily: "'DM Mono', monospace",
-              }}>↑ Upload Processed</button>
-            )}
-          </div>
-        </div>
-
-        {/* Asset Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
-          {filtered.map(asset => (
-            <div key={asset.id}
-              onClick={() => { setSelected(selected?.id === asset.id ? null : asset); setShowMetriXs(false); }}
-              style={{
-                padding: 16, borderRadius: 12, cursor: "pointer", transition: "all 0.2s",
-                background: selected?.id === asset.id ? "#12120f" : "#0d0d0f",
-                border: `1px solid ${selected?.id === asset.id ? "#c9a96e66" : "#1a1a1e"}`,
-              }}>
-              <div style={{ fontSize: 28, marginBottom: 10 }}>{asset.thumbnail}</div>
-              <div style={{ fontSize: 12, color: "#f0e8d8", marginBottom: 4, fontWeight: 500, lineHeight: 1.3 }}>{asset.title}</div>
-              <div style={{ fontSize: 10, color: "#555", fontFamily: "'DM Mono', monospace", marginBottom: 10 }}>{asset.size} · {asset.date}</div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{
-                  fontSize: 9, padding: "2px 7px", borderRadius: 10, textTransform: "uppercase", letterSpacing: "0.08em",
-                  fontFamily: "'DM Mono', monospace",
-                  background: asset.tier === "raw" ? "#1a1208" : "#0f1a24",
-                  color: asset.tier === "raw" ? "#c9a96e" : "#4a9eff",
-                  border: `1px solid ${asset.tier === "raw" ? "#c9a96e33" : "#4a9eff33"}`,
-                }}>{asset.tier}</span>
-                <span style={{ fontSize: 10, color: "#444", fontFamily: "'DM Mono', monospace" }}>
-                  {asset.uploader}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Detail Panel */}
-      {selected && (
-        <div style={{
-          background: "#0a0a0c", borderRadius: 14, border: "1px solid #1a1a1e",
-          padding: 20, height: "fit-content", position: "sticky", top: 0,
-          animation: "slideIn 0.25s ease",
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-            <div style={{ fontSize: 24 }}>{selected.thumbnail}</div>
-            <button onClick={() => setSelected(null)} style={{
-              background: "none", border: "none", color: "#555", fontSize: 18, cursor: "pointer", lineHeight: 1,
-            }}>×</button>
-          </div>
-          <div style={{ fontSize: 14, color: "#f0e8d8", fontWeight: 500, marginBottom: 4 }}>{selected.title}</div>
-          <div style={{ fontSize: 11, color: "#555", fontFamily: "'DM Mono', monospace", marginBottom: 16 }}>
-            {selected.type} · {selected.size} · {selected.date}
-          </div>
-
-          {selected.source && (
-            <div style={{ fontSize: 11, color: "#4a9eff", fontFamily: "'DM Mono', monospace", marginBottom: 16, padding: "8px 12px", background: "#0f1a24", borderRadius: 8, border: "1px solid #4a9eff22" }}>
-              Derived from: {MOCK_ASSETS.find(a => a.id === selected.source)?.title}
-            </div>
-          )}
-
-          <div style={{ borderTop: "1px solid #1a1a1e", paddingTop: 16 }}>
-            <button onClick={() => setShowMetriXs(!showMetriXs)} style={{
-              width: "100%", padding: "9px 14px", borderRadius: 8, cursor: "pointer",
-              background: showMetriXs ? "#c9a96e11" : "transparent",
-              color: "#c9a96e", border: "1px solid #c9a96e44", fontSize: 11,
-              fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            }}>
-              <span>◎</span> {showMetriXs ? "Hide" : "Pull"} MetriXs Data
-            </button>
-            {showMetriXs && <MetriXsPanel asset={selected} />}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Task Ledger ──────────────────────────────────────────────────────────────
-function TaskLedger({ role }) {
-  const [tasks, setTasks] = useState(MOCK_TASKS);
-  const [showNew, setShowNew] = useState(false);
-  const [newTask, setNewTask] = useState({ title: "", category: "Pinterest Scheduling", manager_note: "" });
-  const [filter, setFilter] = useState("all");
-
-  const filtered = tasks.filter(t => filter === "all" || t.status === filter);
-
-  const verify = (id) => setTasks(ts => ts.map(t => t.id === id ? { ...t, status: "Verified", proNote: "Verified ✓" } : t));
-  const dispute = (id) => setTasks(ts => ts.map(t => t.id === id ? { ...t, status: "Disputed", proNote: "Flagged for review" } : t));
-  const addTask = () => {
-    if (!newTask.title.trim()) return;
-    setTasks(ts => [{ id: `t${Date.now()}`, ...newTask, status: "Pending", created: "Today", proof: null, proNote: null }, ...ts]);
-    setNewTask({ title: "", category: "Pinterest Scheduling", manager_note: "" });
-    setShowNew(false);
-  };
-  const deleteTask = (id) => setTasks(ts => ts.filter(t => t.id !== id));
-
-  return (
-    <div>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
-        {["all", "Pending", "Submitted", "Verified", "Disputed"].map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{
-            padding: "5px 12px", borderRadius: 20, fontSize: 10, cursor: "pointer",
-            fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", textTransform: "uppercase",
-            background: filter === f ? "#c9a96e" : "transparent",
-            color: filter === f ? "#0a0a0c" : "#666",
-            border: `1px solid ${filter === f ? "#c9a96e" : "#252528"}`,
-          }}>{f}</button>
-        ))}
-        {role === "manager" && (
-          <button onClick={() => setShowNew(!showNew)} style={{
-            marginLeft: "auto", padding: "7px 16px", borderRadius: 8, cursor: "pointer",
-            background: "#1a1a1e", color: "#3dd68c", border: "1px solid #3dd68c44", fontSize: 12,
-            fontFamily: "'DM Mono', monospace",
-          }}>+ Log Task</button>
-        )}
-      </div>
-
-      {/* New task form */}
-      {showNew && role === "manager" && (
-        <div style={{ background: "#0d0f0e", border: "1px solid #3dd68c33", borderRadius: 12, padding: 18, marginBottom: 16 }}>
-          <input value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })}
-            placeholder="Task title — be specific (e.g. 'Scheduled 5 pins in SalonFlow')"
-            style={{ width: "100%", background: "#0a0a0c", border: "1px solid #1e1e22", borderRadius: 8, padding: "10px 14px", color: "#f0e8d8", fontSize: 13, boxSizing: "border-box", fontFamily: "'DM Mono', monospace", outline: "none", marginBottom: 10 }}
-          />
-          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-            <select value={newTask.category} onChange={e => setNewTask({ ...newTask, category: e.target.value })}
-              style={{ flex: 1, background: "#0a0a0c", border: "1px solid #1e1e22", borderRadius: 8, padding: "9px 12px", color: "#f0e8d8", fontSize: 12, fontFamily: "'DM Mono', monospace", cursor: "pointer" }}>
-              {["Pinterest Scheduling","SEO Optimization","Affiliate Setup","Content Editing","Analytics Report","Email Campaign","Etsy Listing","Social Post","Other"].map(c =>
-                <option key={c}>{c}</option>
-              )}
-            </select>
-          </div>
-          <textarea value={newTask.manager_note} onChange={e => setNewTask({ ...newTask, manager_note: e.target.value })}
-            placeholder="Notes / proof of work description…"
-            rows={2}
-            style={{ width: "100%", background: "#0a0a0c", border: "1px solid #1e1e22", borderRadius: 8, padding: "10px 14px", color: "#f0e8d8", fontSize: 12, boxSizing: "border-box", fontFamily: "'DM Mono', monospace", resize: "none", outline: "none", marginBottom: 12 }}
-          />
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={addTask} style={{ padding: "8px 18px", borderRadius: 8, background: "#3dd68c22", color: "#3dd68c", border: "1px solid #3dd68c55", fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono', monospace" }}>Submit Task</button>
-            <button onClick={() => setShowNew(false)} style={{ padding: "8px 18px", borderRadius: 8, background: "transparent", color: "#555", border: "1px solid #252528", fontSize: 12, cursor: "pointer", fontFamily: "'DM Mono', monospace" }}>Cancel</button>
-          </div>
-        </div>
-      )}
-
-      {/* Task rows */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {filtered.map(task => (
-          <div key={task.id} style={{
-            background: "#0d0d0f", borderRadius: 12, border: "1px solid #1a1a1e",
-            padding: "16px 18px", transition: "border-color 0.2s",
-          }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                  <StatusPill status={task.status} />
-                  <span style={{ fontSize: 10, color: "#444", fontFamily: "'DM Mono', monospace" }}>{task.category}</span>
-                  <span style={{ fontSize: 10, color: "#333", fontFamily: "'DM Mono', monospace", marginLeft: "auto" }}>{task.created}</span>
-                </div>
-                <div style={{ fontSize: 13, color: "#f0e8d8", fontWeight: 500, marginBottom: 6 }}>{task.title}</div>
-                {task.manager_note && <div style={{ fontSize: 11, color: "#666", fontFamily: "'DM Mono', monospace" }}>Manager: {task.manager_note}</div>}
-                {task.proNote && <div style={{ fontSize: 11, color: "#aaa", marginTop: 4, fontFamily: "'DM Mono', monospace" }}>Pro: {task.proNote}</div>}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
-                {role === "pro" && task.status === "Submitted" && <>
-                  <button onClick={() => verify(task.id)} style={{ padding: "6px 12px", borderRadius: 7, fontSize: 11, cursor: "pointer", background: "#0a1f14", color: "#3dd68c", border: "1px solid #3dd68c44", fontFamily: "'DM Mono', monospace" }}>✓ Verify</button>
-                  <button onClick={() => dispute(task.id)} style={{ padding: "6px 12px", borderRadius: 7, fontSize: 11, cursor: "pointer", background: "#2a0f0f", color: "#ff6b6b", border: "1px solid #ff6b6b44", fontFamily: "'DM Mono', monospace" }}>⚑ Dispute</button>
-                </>}
-                {role === "manager" && task.status === "Pending" && (
-                  <button onClick={() => setTasks(ts => ts.map(t => t.id === task.id ? { ...t, status: "Submitted" } : t))} style={{ padding: "6px 12px", borderRadius: 7, fontSize: 11, cursor: "pointer", background: "#0f1a24", color: "#4a9eff", border: "1px solid #4a9eff44", fontFamily: "'DM Mono', monospace" }}>→ Submit</button>
-                )}
-                {role === "manager" && (task.status === "Pending" || task.status === "Disputed") && (
-                  <button onClick={() => deleteTask(task.id)} style={{ padding: "6px 12px", borderRadius: 7, fontSize: 11, cursor: "pointer", background: "transparent", color: "#444", border: "1px solid #252528", fontFamily: "'DM Mono', monospace" }}>Delete</button>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Activity Feed ────────────────────────────────────────────────────────────
-function ActivityFeed() {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      {MOCK_ACTIVITY.map(a => (
-        <div key={a.id} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-            background: "#12120f", border: "1px solid #252520",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 11, color: "#c9a96e", fontFamily: "'DM Mono', monospace",
-          }}>{activityIcons[a.type]}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, color: "#aaa", lineHeight: 1.4 }}>{a.msg}</div>
-            <div style={{ fontSize: 10, color: "#444", fontFamily: "'DM Mono', monospace", marginTop: 3 }}>{a.time}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── Main App ─────────────────────────────────────────────────────────────────
-export default function Workroom() {
-  const [tab, setTab] = useState("vault");
-  const [role, setRole] = useState("pro");
-  const p = MOCK_PARTNERSHIP;
-
-  const tabs = [
-    { id: "vault", label: "Asset Vault", icon: "◫" },
-    { id: "tasks", label: "Task Ledger", icon: "≡" },
-    { id: "feed",  label: "Activity",    icon: "◎" },
-  ];
-
-  return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #070709; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-        input::placeholder, textarea::placeholder { color: #444; }
-        select option { background: #12120f; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #252528; border-radius: 2px; }
-      `}</style>
-
-      <div style={{
-        minHeight: "100vh", background: "#070709",
-        color: "#c8c0b4", fontFamily: "'DM Sans', sans-serif",
-        animation: "fadeUp 0.4s ease",
-      }}>
-
-        {/* Header */}
-        <div style={{
-          borderBottom: "1px solid #111114", padding: "0 24px",
-          background: "#07070980", backdropFilter: "blur(12px)",
-          position: "sticky", top: 0, zIndex: 10,
-        }}>
-          <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", alignItems: "center", gap: 16, height: 56 }}>
-            <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 15, color: "#c9a96e", letterSpacing: "-0.01em" }}>
-              Beauty ProForma
-            </div>
-            <div style={{ width: 1, height: 20, background: "#1e1e22" }}/>
-            <div style={{ fontSize: 12, color: "#555", fontFamily: "'DM Mono', monospace" }}>Workroom</div>
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, color: "#555", fontFamily: "'DM Mono', monospace" }}>Viewing as</span>
-              <button onClick={() => setRole(r => r === "pro" ? "manager" : "pro")} style={{
-                padding: "5px 12px", borderRadius: 20, fontSize: 10, cursor: "pointer",
-                fontFamily: "'DM Mono', monospace", letterSpacing: "0.06em", textTransform: "uppercase",
-                background: role === "pro" ? "#c9a96e22" : "#0f1a24",
-                color: role === "pro" ? "#c9a96e" : "#4a9eff",
-                border: `1px solid ${role === "pro" ? "#c9a96e44" : "#4a9eff44"}`,
-                transition: "all 0.2s",
-              }}>{role === "pro" ? "Pro ⇄" : "Manager ⇄"}</button>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ maxWidth: 960, margin: "0 auto", padding: "24px 24px 48px" }}>
-
-          {/* Partnership Card */}
-          <div style={{
-            background: "linear-gradient(135deg, #0f0e0a 0%, #0a0c0f 100%)",
-            borderRadius: 16, border: "1px solid #1a1a1e",
-            padding: "20px 24px", marginBottom: 28,
-            display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
-              <Avatar initials={p.pro.avatar} color="#c9a96e" />
-              <div>
-                <div style={{ fontSize: 14, color: "#f0e8d8", fontWeight: 500 }}>{p.pro.name}</div>
-                <div style={{ fontSize: 11, color: "#666", fontFamily: "'DM Mono', monospace" }}>{p.pro.specialty}</div>
-              </div>
-            </div>
-            <div style={{
-              padding: "6px 14px", borderRadius: 20, fontSize: 10, letterSpacing: "0.1em",
-              fontFamily: "'DM Mono', monospace", color: "#3dd68c",
-              background: "#0a1f14", border: "1px solid #3dd68c44",
-            }}>ACTIVE PARTNERSHIP</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, justifyContent: "flex-end" }}>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 14, color: "#f0e8d8", fontWeight: 500 }}>{p.manager.name}</div>
-                <div style={{ fontSize: 11, color: "#666", fontFamily: "'DM Mono', monospace" }}>{p.manager.skills.slice(0,2).join(" · ")}</div>
-              </div>
-              <Avatar initials={p.manager.avatar} color="#4a9eff" />
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: 24, alignItems: "start" }}>
-            <div>
-              {/* Tabs */}
-              <div style={{ display: "flex", gap: 2, marginBottom: 24, background: "#0a0a0c", padding: 4, borderRadius: 12, border: "1px solid #111114", width: "fit-content" }}>
-                {tabs.map(t => (
-                  <button key={t.id} onClick={() => setTab(t.id)} style={{
-                    padding: "8px 18px", borderRadius: 9, fontSize: 12, cursor: "pointer",
-                    fontFamily: "'DM Mono', monospace", letterSpacing: "0.04em",
-                    background: tab === t.id ? "#1a1a1e" : "transparent",
-                    color: tab === t.id ? "#f0e8d8" : "#555",
-                    border: `1px solid ${tab === t.id ? "#252528" : "transparent"}`,
-                    transition: "all 0.2s",
-                    display: "flex", alignItems: "center", gap: 6,
-                  }}>
-                    <span style={{ fontSize: 10 }}>{t.icon}</span> {t.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Tab Panels */}
-              <div key={tab} style={{ animation: "fadeUp 0.25s ease" }}>
-                {tab === "vault" && <AssetVault role={role} />}
-                {tab === "tasks" && <TaskLedger role={role} />}
-                {tab === "feed"  && <ActivityFeed />}
-              </div>
-            </div>
-
-            {/* Right sidebar */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* Quick Stats */}
-              <div style={{ background: "#0a0a0c", borderRadius: 14, border: "1px solid #111114", padding: 18 }}>
-                <div style={{ fontSize: 10, color: "#555", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 14 }}>WORKROOM STATS</div>
-                {[
-                  { label: "Raw Assets", value: MOCK_ASSETS.filter(a=>a.tier==="raw").length, color: "#c9a96e" },
-                  { label: "Processed", value: MOCK_ASSETS.filter(a=>a.tier==="processed").length, color: "#4a9eff" },
-                  { label: "Tasks Verified", value: MOCK_TASKS.filter(t=>t.status==="Verified").length, color: "#3dd68c" },
-                  { label: "Pending Review", value: MOCK_TASKS.filter(t=>t.status==="Submitted").length, color: "#f5a623" },
-                ].map(s => (
-                  <div key={s.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #0f0f12" }}>
-                    <span style={{ fontSize: 11, color: "#666", fontFamily: "'DM Mono', monospace" }}>{s.label}</span>
-                    <span style={{ fontSize: 16, color: s.color, fontFamily: "'DM Serif Display', serif" }}>{s.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Dignity Clause badge */}
-              <div style={{ background: "#0a0a0c", borderRadius: 14, border: "1px solid #c9a96e22", padding: 18 }}>
-                <div style={{ fontSize: 10, color: "#c9a96e", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 10 }}>DIGNITY CLAUSE</div>
-                <div style={{ fontSize: 11, color: "#666", lineHeight: 1.6 }}>
-                  All content in this vault is owned 100% by <span style={{ color: "#c9a96e" }}>{p.pro.name}</span>. Likeness rights revert automatically on termination.
-                </div>
-                <div style={{ marginTop: 12, fontSize: 10, color: "#3dd68c", fontFamily: "'DM Mono', monospace" }}>✓ Both parties signed · {p.dignity_clause_version}</div>
-              </div>
-
-              {/* Live Activity */}
-              <div style={{ background: "#0a0a0c", borderRadius: 14, border: "1px solid #111114", padding: 18 }}>
-                <div style={{ fontSize: 10, color: "#555", fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", marginBottom: 14 }}>LIVE ACTIVITY</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {MOCK_ACTIVITY.slice(0,3).map(a => (
-                    <div key={a.id} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                      <span style={{ fontSize: 11, color: "#c9a96e", marginTop: 1 }}>{activityIcons[a.type]}</span>
-                      <div>
-                        <div style={{ fontSize: 11, color: "#888", lineHeight: 1.4 }}>{a.msg}</div>
-                        <div style={{ fontSize: 9, color: "#444", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{a.time}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-
-// This connects the Workroom component to the <div id="root"> in your HTML
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <Workroom /> 
-  </React.StrictMode>
+      fontFamily: "'Fraunces', serif",
+      fontWeight: 600, fontSize: size,
+      letterSpacing: "-.01em",
+      color: dark ? "white" : T.inkDark,
+      lineHeight: 1,
+    }}>
+      Beauty <span style={{ color: T.teal }}>ProForma</span>
+    </span>
+  </div>
 );
+
+const Accent = ({ w = 36 }) => (
+  <div style={{
+    width: w, height: 3, borderRadius: 2,
+    background: `linear-gradient(90deg, ${T.teal}, ${T.tealLight})`,
+    marginBottom: 18,
+  }} />
+);
+
+const Tag = ({ children, light = false }) => (
+  <span style={{
+    display: "inline-block", fontSize: 11, fontWeight: 600,
+    letterSpacing: ".04em", textTransform: "uppercase",
+    padding: "4px 10px", borderRadius: 20,
+    background: light ? "rgba(255,255,255,.14)" : T.tealGlow,
+    color: light ? "rgba(255,255,255,.9)" : T.tealDark,
+    border: `1px solid ${light ? "rgba(255,255,255,.22)" : T.tealBorder}`,
+  }}>{children}</span>
+);
+
+const Check = ({ text, dark = false }) => (
+  <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+    <div style={{
+      width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 1,
+      background: dark ? "rgba(89,197,197,.18)" : T.tealGlow,
+      border: `1.5px solid ${T.teal}`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+    }}>
+      <div style={{
+        width: 6, height: 4,
+        borderLeft: `2px solid ${T.teal}`,
+        borderBottom: `2px solid ${T.teal}`,
+        transform: "rotate(-45deg) translateY(-1px)",
+      }} />
+    </div>
+    <span style={{
+      fontSize: 13, fontWeight: 400, lineHeight: 1.5,
+      color: dark ? "rgba(255,255,255,.8)" : T.inkMid,
+    }}>{text}</span>
+  </div>
+);
+
+// ─── Ticker ───────────────────────────────────────────────────
+const TICKER_ITEMS = [
+  "Ghost Money Recovery", "Dignity Clause v1.0",
+  "80/20 Revenue Split", "Automatic Task Sync",
+  "MetriXs Integration", "SalonFlow Connected",
+  "Match Algorithm Live", "100% Content Ownership",
+];
+
+const Ticker = () => {
+  const doubled = [...TICKER_ITEMS, ...TICKER_ITEMS];
+  return (
+    <div style={{ background: T.deepWarm, overflow: "hidden", padding: "11px 0" }}>
+      <div style={{
+        display: "flex", gap: 48, whiteSpace: "nowrap",
+        animation: "ticker 32s linear infinite", width: "max-content",
+      }}>
+        {doubled.map((item, i) => (
+          <span key={i} style={{
+            fontSize: 11, fontWeight: 500, letterSpacing: ".08em",
+            textTransform: "uppercase",
+            color: i % 4 === 0 ? T.teal : "rgba(255,255,255,.35)",
+            display: "flex", alignItems: "center", gap: 9,
+          }}>
+            <span style={{
+              width: 4, height: 4, borderRadius: "50%",
+              background: T.teal, display: "inline-block", flexShrink: 0,
+            }} />
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ─── Nav ──────────────────────────────────────────────────────
+const Nav = ({ onEnter }) => {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", fn);
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
+
+  return (
+    <nav style={{
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+      height: 64, display: "flex", alignItems: "center",
+      padding: "0 48px", justifyContent: "space-between",
+      background: scrolled ? "rgba(250,247,242,0.93)" : "transparent",
+      backdropFilter: scrolled ? "blur(16px)" : "none",
+      borderBottom: scrolled ? `1px solid ${T.borderSoft}` : "1px solid transparent",
+      transition: "all .35s ease",
+    }}>
+      <Wordmark size={17} />
+      <div style={{ display: "flex", gap: 30, alignItems: "center" }}>
+        {["How It Works", "For Pros", "For Managers"].map(l => (
+          <span key={l} className="nav-a">{l}</span>
+        ))}
+      </div>
+      <button className="btn-t" onClick={onEnter}
+        style={{ padding: "10px 22px", fontSize: 12 }}>
+        Enter Workroom →
+      </button>
+    </nav>
+  );
+};
+
+// ─── Split Hero ───────────────────────────────────────────────
+const SplitHero = ({ onEnter }) => {
+  const [email, setEmail] = useState("");
+  const [joined, setJoined] = useState(false);
+
+  const join = () => {
+    if (!email.includes("@")) return;
+    // TODO: supabase.from('waitlist').insert({ email, created_at: new Date() })
+    setJoined(true);
+  };
+
+  return (
+    <section style={{
+      minHeight: "100vh", display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      paddingTop: 64, position: "relative",
+    }}>
+      {/* Pro side */}
+      <div style={{
+        background: T.warmWhite,
+        padding: "80px 52px 100px 60px",
+        display: "flex", flexDirection: "column", justifyContent: "center",
+        borderRight: `1px solid ${T.borderSoft}`,
+        position: "relative", overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", bottom: -90, left: -90,
+          width: 340, height: 340, borderRadius: "50%",
+          background: T.tealGlow, border: `1px solid ${T.tealBorder}`,
+          pointerEvents: "none",
+        }} />
+        <div style={{ position: "relative", animation: "slideL .9s ease both" }}>
+          <Tag>For Salon Pros</Tag>
+          <h1 style={{
+            fontFamily: "'Fraunces', serif",
+            fontSize: "clamp(32px, 4.5vw, 50px)",
+            fontWeight: 400, lineHeight: 1.1,
+            letterSpacing: "-.02em",
+            marginTop: 16, marginBottom: 20, color: T.inkDark,
+          }}>
+            Your talent deserves<br />
+            <em style={{ color: T.teal, fontStyle: "italic" }}>a business partner.</em>
+          </h1>
+          <p style={{
+            fontSize: 15, lineHeight: 1.8, color: T.inkMid,
+            fontWeight: 300, marginBottom: 32, maxWidth: 400,
+          }}>
+            You're a creator, a specialist, an artist — and somehow also the
+            accountant, scheduler, marketer, and negotiator. ProForma finds you
+            the back-office partner who handles all of that, while you keep
+            100% of your content.
+          </p>
+          {[
+            "Ghost money found and recovered",
+            "80/20 revenue split, automatic",
+            "Your content — before, during, and after",
+          ].map(t => <Check key={t} text={t} />)}
+          <div style={{ marginTop: 32, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button className="btn-t" onClick={onEnter}>I'm a Pro →</button>
+            <button className="btn-o"
+              onClick={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })}>
+              Learn more
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Manager side */}
+      <div style={{
+        background: T.deepWarm,
+        padding: "80px 60px 100px 52px",
+        display: "flex", flexDirection: "column", justifyContent: "center",
+        position: "relative", overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", top: -60, right: -60,
+          width: 280, height: 280, borderRadius: "50%",
+          background: "rgba(89,197,197,.07)",
+          border: "1px solid rgba(89,197,197,.13)",
+          pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0, opacity: .03,
+          backgroundImage: "repeating-linear-gradient(0deg,rgba(255,255,255,.5) 0px,rgba(255,255,255,.5) 1px,transparent 1px,transparent 40px)",
+          pointerEvents: "none",
+        }} />
+        <div style={{ position: "relative", animation: "slideR .9s ease both" }}>
+          <Tag light>For Digital Managers</Tag>
+          <h1 style={{
+            fontFamily: "'Fraunces', serif",
+            fontSize: "clamp(32px, 4.5vw, 50px)",
+            fontWeight: 400, lineHeight: 1.1,
+            letterSpacing: "-.02em",
+            marginTop: 16, marginBottom: 20, color: "white",
+          }}>
+            Your expertise has<br />
+            <em style={{ color: T.teal, fontStyle: "italic" }}>a new home.</em>
+          </h1>
+          <p style={{
+            fontSize: 15, lineHeight: 1.8,
+            color: "rgba(255,255,255,.58)",
+            fontWeight: 300, marginBottom: 32, maxWidth: 400,
+          }}>
+            The 12% displacement rate didn't erase your skills — it redirected
+            them. Your L'Oréal strategy experience, your Amazon marketplace
+            knowledge — the beauty creator economy needs exactly that, right now.
+          </p>
+          {[
+            "Matched to Pros with your exact skill gaps",
+            "Verified
