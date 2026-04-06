@@ -562,3 +562,13 @@ export default function Workroom() {
     </>
   );
 }
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
+// This connects the Workroom component to the <div id="root"> in your HTML
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <Workroom /> 
+  </React.StrictMode>
+);
