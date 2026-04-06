@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom/client";
 
-// ─── DESIGN TOKENS ────────────────────────────────────────────
+// ─── DESIGN SYSTEM ────────────────────────────────────────────
 const T = {
   cream:      "#FAF7F2",
   parchment:  "#F3EDE3",
@@ -21,53 +21,44 @@ const T = {
   borderMid:  "rgba(28,22,18,0.14)",
 };
 
-// ─── COMPONENTS ───────────────────────────────────────────────
-
-const Wordmark = () => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-    <div style={{ width: '24px', height: '24px', borderRadius: '4px', background: `linear-gradient(135deg, ${T.teal}, ${T.tealDark})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: '10px', height: '10px', border: '1.5px solid white', borderRadius: '1px' }} />
-    </div>
-    <span style={{ fontWeight: '600', letterSpacing: '-0.02em', fontSize: '18px', color: T.inkDark }}>
-      BEAUTY <span style={{ color: T.inkLight, fontWeight: '400' }}>PROFORMA</span>
-    </span>
-  </div>
-);
+// ─── UI COMPONENTS ───────────────────────────────────────────
 
 const Nav = ({ onEnter }) => (
-  <nav style={{ position: 'fixed', top: 0, width: '100%', z_index: 1000, background: 'rgba(250,247,242,0.8)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${T.borderSoft}`, padding: '0 40px' }}>
+  <nav style={{ position: 'fixed', top: 0, width: '100%', zIndex: 1000, background: 'rgba(250,247,242,0.8)', backdropFilter: 'blur(12px)', borderBottom: `1px solid ${T.borderSoft}`, padding: '0 40px' }}>
     <div style={{ maxWidth: '1400px', margin: '0 auto', height: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <Wordmark />
-      <button 
-        onClick={onEnter}
-        style={{ padding: '12px 24px', borderRadius: '100px', background: T.inkDark, color: 'white', border: 'none', fontWeight: '500', cursor: 'pointer' }}
-      >
-        Enter Workroom
-      </button>
+      <div style={{ fontWeight: '700', fontSize: '20px', letterSpacing: '-0.03em', color: T.inkDark }}>BEAUTY <span style={{ color: T.teal }}>PROFORMA</span></div>
+      <button onClick={onEnter} style={{ padding: '12px 28px', borderRadius: '100px', background: T.inkDark, color: 'white', border: 'none', fontWeight: '600', cursor: 'pointer', transition: '0.2s' }}>Enter Workroom</button>
     </div>
   </nav>
 );
 
 const Landing = ({ onEnter }) => (
-  <div style={{ paddingTop: '80px', background: T.cream }}>
-    <header style={{ padding: '120px 40px', textAlign: 'center', maxWidth: '900px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '72px', color: T.inkDark, marginBottom: '24px', fontFamily: 'serif' }}>The High-End Suite for Beauty Professionals.</h1>
-      <p style={{ fontSize: '20px', color: T.inkMid, lineHeight: 1.6, marginBottom: '40px' }}>Elevate your business with the Sovereign Foundation.</p>
-      <button 
-        onClick={onEnter}
-        style={{ padding: '20px 48px', fontSize: '18px', background: T.teal, color: 'white', borderRadius: '100px', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-      >
-        Start Your Empire
-      </button>
-    </header>
-  </div>
+  <main style={{ background: T.cream, minHeight: '100vh', paddingTop: '160px' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 40px', textAlign: 'center' }}>
+      <span style={{ color: T.teal, fontWeight: '600', letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '13px' }}>The Sovereign Foundation</span>
+      <h1 style={{ fontSize: '84px', fontFamily: 'serif', color: T.inkDark, lineHeight: 0.9, margin: '24px 0 32px' }}>Build your empire <br/> in high-definition.</h1>
+      <p style={{ fontSize: '21px', color: T.inkMid, maxWidth: '600px', margin: '0 auto 48px', lineHeight: 1.5 }}>A premium digital suite designed exclusively for elite beauty professionals.</p>
+      <button onClick={onEnter} style={{ padding: '24px 56px', fontSize: '18px', background: T.teal, color: 'white', borderRadius: '100px', border: 'none', cursor: 'pointer', fontWeight: '700', boxShadow: `0 20px 40px ${T.tealGlow}` }}>Start Your Journey</button>
+    </div>
+  </main>
 );
 
 const Workroom = ({ onBack }) => (
-  <div style={{ minHeight: '100vh', background: T.inkDark, color: 'white', padding: '60px' }}>
-    <button onClick={onBack} style={{ color: T.teal, background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', marginBottom: '40px' }}>← Return to Landing</button>
-    <h1 style={{ fontSize: '48px', color: T.teal }}>Your Workroom</h1>
-    <p style={{ color: T.inkFaint }}>The suite is loading...</p>
+  <div style={{ minHeight: '100vh', background: T.deepWarm, color: 'white', display: 'flex' }}>
+    <aside style={{ width: '300px', borderRight: `1px solid ${T.borderMid}`, padding: '40px' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', color: T.teal, cursor: 'pointer', marginBottom: '60px' }}>← Back</button>
+      <div style={{ marginBottom: '40px', fontSize: '14px', color: T.inkFaint }}>DASHBOARD</div>
+      <div style={{ padding: '12px 0', color: T.teal, fontWeight: '600' }}>Active Suite</div>
+      <div style={{ padding: '12px 0', opacity: 0.5 }}>Analytics</div>
+      <div style={{ padding: '12px 0', opacity: 0.5 }}>Settings</div>
+    </aside>
+    <main style={{ flex: 1, padding: '80px' }}>
+      <h2 style={{ fontSize: '40px', fontFamily: 'serif', marginBottom: '12px' }}>Welcome, Professional.</h2>
+      <p style={{ color: T.inkFaint, fontSize: '18px' }}>Your empire is currently being optimized.</p>
+      <div style={{ marginTop: '60px', height: '400px', border: `1px dashed ${T.tealBorder}`, borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.teal }}>
+        Workroom Interface Initializing...
+      </div>
+    </main>
   </div>
 );
 
@@ -77,14 +68,14 @@ function App() {
   const [view, setView] = useState("landing");
 
   return (
-    <div style={{ minHeight: "100vh", background: T.cream }}>
+    <>
       <Nav onEnter={() => setView("workroom")} />
       {view === "landing" ? (
         <Landing onEnter={() => setView("workroom")} />
       ) : (
         <Workroom onBack={() => setView("landing")} />
       )}
-    </div>
+    </>
   );
 }
 
