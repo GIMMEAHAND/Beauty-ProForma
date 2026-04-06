@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 
 // ─── Supabase (swap in your real keys when ready) ─────────────
 // import { supabase } from "./supabaseClient";
